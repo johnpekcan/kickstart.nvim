@@ -1,5 +1,56 @@
--- You can add your own plugins here or in other files in this directory!
---  I promise not to create any merge conflicts in this directory :)
---
--- See the kickstart.nvim README for more information
-return {}
+return {
+  {
+    'nvim-tree/nvim-tree.lua',
+    version = '*',
+    lazy = false,
+    dependencies = {
+      'nvim-tree/nvim-web-devicons',
+    },
+    config = function()
+      require('nvim-tree').setup {}
+    end,
+  },
+  'vimwiki/vimwiki',
+  'tpope/vim-fugitive',
+  'tpope/vim-rhubarb',
+  'mbbill/undotree',
+  {
+    -- Adds git related signs to the gutter, as well as utilities for managing changes
+    'lewis6991/gitsigns.nvim',
+    opts = {
+      -- See `:help gitsigns.txt`
+      signs = {
+        add = { text = '+' },
+        change = { text = '~' },
+        delete = { text = '_' },
+        topdelete = { text = '‾' },
+        changedelete = { text = '~' },
+      },
+      on_attach = function(bufnr)
+        local gs = package.loaded.gitsigns
+        vim.keymap.set('n', '<leader>hp', gs.preview_hunk, { buffer = bufnr, desc = 'Preview git hunk' })
+        vim.keymap.set('n', '<leader>hu', gs.reset_hunk, { buffer = bufnr, desc = 'Reset hunk' })
+
+        -- don't override the built-in and fugitive keymaps
+        vim.keymap.set({ 'n', 'v' }, ']c', function()
+          if vim.wo.diff then
+            return ']c'
+          end
+          vim.schedule(function()
+            gs.next_hunk()
+          end)
+          return '<Ignore>'
+        end, { expr = true, buffer = bufnr, desc = 'Jump to next hunk' })
+        vim.keymap.set({ 'n', 'v' }, '[c', function()
+          if vim.wo.diff then
+            return '[c'
+          end
+          vim.schedule(function()
+            gs.prev_hunk()
+          end)
+          return '<Ignore>'
+        end, { expr = true, buffer = bufnr, desc = 'Jump to previous hunk' })
+      end,
+    },
+  },
+}
